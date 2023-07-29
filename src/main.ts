@@ -47,7 +47,7 @@ const createFullscreenPass = (
     },
   });
 
-  const uniformBufferSize = 4 * 2; // screen width & height
+  const uniformBufferSize = 4 * Float32Array.BYTES_PER_ELEMENT; // screen width & height
   const uniformBuffer = device.createBuffer({
     size: uniformBufferSize,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -79,12 +79,13 @@ const createFullscreenPass = (
 
   const addFullscreenPass = (
     context: GPUCanvasContext,
-    commandEncoder: GPUCommandEncoder
+    commandEncoder: GPUCommandEncoder,
+    timestamp: number
   ) => {
     device.queue.writeBuffer(
       uniformBuffer,
       0,
-      new Float32Array([presentationSize[0], presentationSize[1]])
+      new Float32Array([presentationSize[0], presentationSize[1], timestamp, presentationSize[0] / presentationSize[1]])
     );
 
     renderPassDescriptor.colorAttachments[0].view = context
@@ -153,7 +154,8 @@ async function init() {
     function draw() {
       const commandEncoder = device.createCommandEncoder();
 
-      addFullscreenPass(context as GPUCanvasContext, commandEncoder);
+      const timestamp = performance.now() / 1000;
+      addFullscreenPass(context as GPUCanvasContext, commandEncoder, timestamp);
 
       device.queue.submit([commandEncoder.finish()]);
 
