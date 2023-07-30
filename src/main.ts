@@ -77,15 +77,23 @@ const createFullscreenPass = (
     ],
   } as any;
 
+  const uniforms = new Float32Array([presentationSize[0], presentationSize[1], 0, presentationSize[0] / presentationSize[1]])
+
   const addFullscreenPass = (
     context: GPUCanvasContext,
     commandEncoder: GPUCommandEncoder,
     timestamp: number
   ) => {
+    // write to uniform
+    uniforms[0] = presentationSize[0]
+    uniforms[1] = presentationSize[1]
+    uniforms[2] = timestamp
+    uniforms[3] = presentationSize[0] / presentationSize[1]
+
     device.queue.writeBuffer(
       uniformBuffer,
       0,
-      new Float32Array([presentationSize[0], presentationSize[1], timestamp, presentationSize[0] / presentationSize[1]])
+      uniforms
     );
 
     renderPassDescriptor.colorAttachments[0].view = context
